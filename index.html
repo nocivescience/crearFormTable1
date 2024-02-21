@@ -3,6 +3,32 @@
 <head>
     <title>Mensajes</title>
 </head>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap" rel="stylesheet">
+<style>
+    body{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+        font-family: 'Roboto Mono', monospace;
+    }
+    #messageTable {
+        width: 100%;
+        border-collapse: collapse; /* Para fusionar los bordes de las celdas */
+        border: 1px solid black;
+    }
+    #messageTable td:first-child, #messageTable th:first-child {
+        background-color: aqua;
+        max-width: 100px;
+    }
+    #messageTable td:nth-child(2), #messageTable th:nth-child(2) {
+        background-color: rgb(238, 0, 255);
+        max-width: 100px;
+    }
+</style>
 <body>
     <form id="messageForm">
         <input type="text" id="messageInput" placeholder="Escribe un mensaje" required>
@@ -27,12 +53,15 @@
         const table = document.getElementById('messageTable');
 
         // Función para agregar un mensaje a la tabla
-        function addMessageToTable(message) {
+        function addMessageToTable(message, date) {
             const row = document.createElement('tr');
             const cell = document.createElement('td');
+            const tiempoEdicion = document.createElement('td');
             cell.textContent = message;
+            tiempoEdicion.textContent = date;
             row.appendChild(cell);
             table.appendChild(row);
+            row.appendChild(tiempoEdicion);
         }
 
         // Manejador del evento de envío del formulario
@@ -40,17 +69,26 @@
             event.preventDefault();
             const message = input.value;
             input.value = '';
-            localStorage.setItem(Date.now().toString(), message);
-            addMessageToTable(message);
+            const date= Date.now().toLocaleString('pt-BR');
+            const item = { message, date };
+            localStorage.setItem(Date.now().toString(), JSON.stringify(item));
+            addMessageToTable(message, date);
         });
 
         // Al cargar la página, agregar los mensajes del localStorage a la tabla
         window.addEventListener('load', function() {
-            const keys = Object.keys(localStorage);
-            for (const key of keys) {
-                addMessageToTable(localStorage.getItem(key));
-            }
-        });
+    const keys = Object.keys(localStorage);
+    for (const key of keys) {
+        const itemString = localStorage.getItem(key);
+        try {
+            const item = JSON.parse(itemString); // Intentar parsear el item
+            addMessageToTable(item.message, item.date);
+            localStorage.clear();
+        } catch (error) {
+            console.error(`Error parsing item with key "${key}": ${itemString}`);
+        }
+    }
+});
     </script>
 </body>
 </html>
